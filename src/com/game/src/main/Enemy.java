@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.util.Random;
 
+import com.game.src.main.classes.EntityA;
 import com.game.src.main.classes.EntityB;
 
 public class Enemy extends GameObject implements EntityB {
@@ -37,12 +38,19 @@ public class Enemy extends GameObject implements EntityB {
 			
 		}
 		
-		if(Physics.Collision(this, game.ea)) {
+		for(int i =0 ; i< game.ea.size(); i++)
+		{
+			EntityA tempEnt = game.ea.get(i);	
+		
+		
+		if(Physics.Collision(this, tempEnt)) {
 			
+			c.removeEntity(tempEnt);
 			c.removeEntity(this);
-			w.set_Money(w.AmountMoney() + 1);
+			//w.set_Money(w.AmountMoney() + 1);
 			game.setEnemy_killed(game.getEnemy_killed() + 1);
 			
+			}
 		}
 		
 	}
