@@ -7,12 +7,11 @@ import java.util.Random;
 import com.game.src.main.classes.EntityA;
 import com.game.src.main.classes.EntityB;
 
-public class Enemy extends GameObject implements EntityB {
+public class Boss extends GameObject implements EntityB {
 	
+Random r =new Random();
 	
-	Random r =new Random();
-	
-	private int speed = r.nextInt(3) + 1; 
+	private int speed = 1; 
 	
 	private Texture tex;
 	private Game game;
@@ -20,7 +19,7 @@ public class Enemy extends GameObject implements EntityB {
 	private Wallet w;
 	
 	
-	public Enemy(double x, double y, Texture tex,Controller c, Game game,Wallet w) {
+	public Boss(double x, double y, Texture tex,Controller c, Game game,Wallet w) {
 	    super(x,y);
 		this.tex = tex;
 		this.c = c;
@@ -33,23 +32,29 @@ public class Enemy extends GameObject implements EntityB {
 		y+=speed;	
 		
 		if(y>(Game.HEIGHT * Game.SCALE)) {
-			y= -10;
-			x = r.nextInt(Game.WIDTH * Game.SCALE);
+			y= -3;
+			x = 0;
+			//레벨 1로 되돌리기
 			
 		}
 		
 		for(int i =0 ; i< game.ea.size(); i++)
 		{
-			EntityA tempEnt = game.ea.get(i);	
-		
+			
+			EntityA tempEnt = game.ea.get(i);		
 		
 		if(Physics.Collision(this, tempEnt))
 		{
-			
+			game.HIT++;
 			c.removeEntity(tempEnt);
-			c.removeEntity(this);
-			Game.MONEY += r.nextInt(10);
-			game.setEnemy_killed(game.getEnemy_killed() + 1);
+			if(game.Boss_HP == game.HIT) {				
+				c.removeEntity(this);
+				Game.MONEY += game.LEVEL * 100;
+				game.stage_clear = true ;
+				game.Boss_HP *= game.LEVEL;
+				game.HIT = 0;
+			}			
+			
 			
 			}
 		}
@@ -57,11 +62,11 @@ public class Enemy extends GameObject implements EntityB {
 	}
 	
 	public void render(Graphics g) {
-		g.drawImage(tex.enemy, (int) x, (int) y ,null);
+		g.drawImage(tex.Boss, (int) x, (int) y ,null);
 	}
 	
 	public Rectangle getBounds() {
-		return new Rectangle((int)x,(int)y,32,32);
+		return new Rectangle((int)x,(int)y,600,400);
 	}
 	
 	public double getX() {

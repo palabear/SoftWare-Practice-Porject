@@ -29,6 +29,9 @@ public class Controller {
 		for(int i =0; i<enemy_count; i++) addEntity(new Enemy(r.nextInt(640),-10,tex,this,game,w));
 		
 		}
+	public void createBoss() {
+		addEntity(new Boss(0,-10,tex,this,game,w));
+	}
 	
 	public void tick() {	
 		//A class

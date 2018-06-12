@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Rectangle;
 
 import com.game.src.main.classes.EntityA;
+import com.game.src.main.classes.EntityB;
 
 public class Player extends GameObject implements EntityA {
 	
@@ -13,18 +14,43 @@ public class Player extends GameObject implements EntityA {
 	
 	private Texture tex;
 	
-	public Player(double x, double y, Texture tex) {
+	Game game;
+	Controller controller;
+	
+	public Player(double x, double y, Texture tex,Game game,Controller controller) {
 		super(x,y);		
 		this.tex = tex;
+		this.game = game;
+		this.controller = controller;
 	}
 	public void tick() {
 		x+=velX;
 		y+=velY;	
 		
 		if(x<=0)x=0;
-		//if(x>=640-18)x=640-18;
+		if(x>=840-32) x=840-32;
 		if(y<=0)y=0;
-		//if(y>=480-32)y=480-32;
+		if(y>=720-32)y=720-32;
+		
+		for(int i=0; i<game.eb.size();i++)
+		{
+			EntityB tempEnt = game.eb.get(i);
+			
+			if(Physics.Collision(this, tempEnt) && !Game.boss_stage)
+			{
+				controller.removeEntity(tempEnt);
+				Game.HEALTH -= 10;
+				game.setEnemy_killed(game.getEnemy_killed() + 1);
+			}
+			
+			if(Physics.Collision(this, tempEnt) && Game.boss_stage)
+			{
+				Game.HEALTH = 0;
+				controller.removeEntity(tempEnt);
+				
+			}
+			
+		}
 	}
 	
 	public void render(Graphics g) {

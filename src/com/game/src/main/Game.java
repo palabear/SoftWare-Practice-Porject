@@ -9,6 +9,7 @@ import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.Random;
 
 import javax.swing.JFrame;
 
@@ -29,14 +30,24 @@ public class Game extends Canvas implements Runnable {
 	private BufferedImage image = new BufferedImage(WIDTH,HEIGHT,BufferedImage.TYPE_INT_RGB); 
 	private BufferedImage spriteSheet = null;
 	private BufferedImage background = null;
+	private BufferedImage boss = null;
 	
 	private boolean is_shooting = false;
+	public static boolean stage_clear = false;
+	public static boolean boss_stage = false;
 	
 	private int enemy_count = 4;
 	private int enemy_killed = 0;
-	
+		
 	public LinkedList<EntityA> ea;
 	public LinkedList<EntityB> eb;
+	
+	public static int HEALTH = 100 * 2;
+	public static int MONEY = 0;
+	public static int LEVEL = 1 ;
+	public static int Boss_HP = 10;
+	public static int HIT = 0;
+	
 	
 	
 	public static enum STATE{
@@ -67,6 +78,8 @@ public class Game extends Canvas implements Runnable {
 	private Texture tex;
 	private Menu menu;
 	private Wallet w;
+	private Market market;
+	Random r =new Random();
 	
 	public void init() {
 		requestFocus();
@@ -75,19 +88,22 @@ public class Game extends Canvas implements Runnable {
 			
 			spriteSheet = loader.loadImage("/sprite_sheet.png");
 			background = loader.loadImage("/background.png");
+			boss = loader.loadImage("/Boss.png");
 			
 		}catch(IOException e) {
 			e.printStackTrace();
 		}
 			
-		tex = new Texture(this);
-		
-		p= new Player(200, 200, tex);
-		c = new Controller(tex, this);		
+		tex = new Texture(this);		
+		c = new Controller(tex, this);	
+		p= new Player(200, 200, tex,this,c);
 		menu = new Menu();
-		w = new Wallet();
+		w = new Wallet(this);
+		market = new Market();
+		
+		
 		this.addKeyListener(new Keyinput(this));	
-		this.addMouseListener(new MouseInput());
+		this.addMouseListener(new MouseInput(w));
 		
 		c.createEnemy(enemy_count);
 		
@@ -111,7 +127,7 @@ public class Game extends Canvas implements Runnable {
 		if(!running)
 			return;
 		
-		running =false;
+		running = false;
 		
 		try {
 			thread.join();
@@ -164,11 +180,32 @@ public class Game extends Canvas implements Runnable {
 			c.tick();
 		}
 		
-		if(enemy_killed >= enemy_count) {
+		if(enemy_killed >= enemy_count && ! boss_stage) {
+			c.createBoss();	
+			boss_stage = true;
+			
+		}
+		
+		if(enemy_killed >= enemy_count && boss_stage && stage_clear) {
 			enemy_count += 2;
+			enemy_killed = 0;			
+			LEVEL++;
+			c.createEnemy(enemy_count);
+			boss_stage = false;
+			stage_clear = false;
+		}
+		
+		if(HEALTH == 0) {
+			HEALTH = 2 * 100;
+			boss_stage = false;
+			LEVEL = 1;
+			Boss_HP = 10;
+			HIT = 0;
+			enemy_count = 4;
 			enemy_killed = 0;
 			c.createEnemy(enemy_count);
 		}
+		
 	}
 	
 	private void render() {
@@ -191,7 +228,28 @@ public class Game extends Canvas implements Runnable {
 		if(state == STATE.GAME) {
 			p.render(g);
 			c.render(g);
+			market.render(g);
+			
+			g.setColor(Color.gray);
+			g.fillRect(5,50,200,30);
+			
+			g.setColor(Color.green);
+			g.fillRect(5,50,HEALTH,30);
+			
+			g.setColor(Color.white);
+			g.drawRect(5,50,200,30);
+			
 			w.render(g);
+			if(boss_stage) {
+				g.setColor(Color.gray);
+				g.fillRect(600,50,200,30);
+				
+				g.setColor(Color.green);
+				g.fillRect(600,50,200-(200*HIT)/Boss_HP,30);
+				
+				g.setColor(Color.white);
+				g.drawRect(6005,50,200,30);
+			}
 		} else if (state == STATE.MENU) {
 			menu.render(g);
 		}
@@ -218,6 +276,9 @@ public class Game extends Canvas implements Runnable {
 		} 
 		if(key == KeyEvent.VK_SPACE && !is_shooting) {
 			c.addEntity(new Bullet(p.getX(),p.getY(),tex,this));
+			//p.setX(p.getX()- (40 - r.nextInt(80)));
+			//p.setY(p.getY()+ r.nextInt(50));
+			
 			is_shooting = true ;
 			
 		}
@@ -269,6 +330,9 @@ public class Game extends Canvas implements Runnable {
 		return spriteSheet;
 	}
 	
+	public BufferedImage getBoss() {
+		return boss;
+	}
 	
 
 }
